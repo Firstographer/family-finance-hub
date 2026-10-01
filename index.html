@@ -15,145 +15,162 @@
 </head>
 <body class="text-gray-800">
 
-    <!-- Navbar / Header -->
-    <header class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center">
-            <div class="flex items-center space-x-3 mb-2 sm:mb-0">
-                <span class="text-2xl">💰</span>
-                <h1 class="text-xl font-bold text-slate-800">Family Expense & Planning Hub</h1>
-            </div>
-            <div class="flex space-x-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0">
-                <button onclick="switchTab('firsto')" id="btn-firsto" class="px-4 py-2 rounded-lg font-medium text-sm transition bg-green-600 text-white shadow-sm">Firsto's Ledger</button>
-                <button onclick="switchTab('cakeeki')" id="btn-cakeeki" class="px-4 py-2 rounded-lg font-medium text-sm transition bg-slate-100 text-slate-600 hover:bg-slate-200">Cakeeki's Ledger</button>
-                <button onclick="switchTab('family')" id="btn-family" class="px-4 py-2 rounded-lg font-medium text-sm transition bg-slate-100 text-slate-600 hover:bg-slate-200">Family Pool</button>
-                <button onclick="switchTab('routing')" id="btn-routing" class="px-4 py-2 rounded-lg font-medium text-sm transition bg-slate-100 text-slate-600 hover:bg-slate-200">Cash Flow Routing</button>
-            </div>
+    <!-- Password Protection Overlay -->
+    <div id="auth-overlay" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-8 shadow-2xl space-y-6 text-center">
+            <div class="text-4xl mb-2">🔒</div>
+            <h2 class="text-xl font-bold text-slate-900">Family Finance Hub</h2>
+            <p class="text-xs text-slate-500">กรุณากรอกรหัสผ่านเพื่อเข้าสู่ระบบ</p>
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <input type="password" id="password-input" placeholder="Password" autofocus class="w-full border border-slate-200 rounded-xl p-3 text-center text-lg tracking-widest focus:outline-none focus:ring-2 focus:ring-green-500">
+                <div id="error-msg" class="text-xs text-red-500 hidden">รหัสผ่านไม่ถูกต้อง</div>
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-medium text-sm transition shadow-sm">เข้าสู่ระบบ</button>
+            </form>
         </div>
-    </header>
+    </div>
 
-    <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
-
-        <!-- SECTION 1: Firsto's Ledger -->
-        <section id="tab-firsto" class="space-y-6">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h2 class="text-2xl font-bold text-slate-900">ค่าใช้จ่ายทั้งหมดของ Firsto</h2>
-                <div class="flex items-center space-x-3">
-                    <button onclick="editSalary('Firsto')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-medium text-sm transition flex items-center space-x-2">
-                        <span>✏️ ตั้งค่าเงินเดือน</span>
-                    </button>
-                    <button onclick="openModal('Firsto')" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm shadow-sm transition flex items-center space-x-2">
-                        <span>+ เพิ่มรายการ</span>
-                    </button>
+    <!-- App Content (Hidden by default until authenticated) -->
+    <div id="app-content" class="hidden">
+        <!-- Navbar / Header -->
+        <header class="bg-white shadow-sm sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center">
+                <div class="flex items-center space-x-3 mb-2 sm:mb-0">
+                    <span class="text-2xl">💰</span>
+                    <h1 class="text-xl font-bold text-slate-800">Family Expense & Planning Hub</h1>
+                </div>
+                <div class="flex space-x-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0">
+                    <button onclick="switchTab('firsto')" id="btn-firsto" class="px-4 py-2 rounded-lg font-medium text-sm transition bg-green-600 text-white shadow-sm">Firsto's Ledger</button>
+                    <button onclick="switchTab('cakeeki')" id="btn-cakeeki" class="px-4 py-2 rounded-lg font-medium text-sm transition bg-slate-100 text-slate-600 hover:bg-slate-200">Cakeeki's Ledger</button>
+                    <button onclick="switchTab('family')" id="btn-family" class="px-4 py-2 rounded-lg font-medium text-sm transition bg-slate-100 text-slate-600 hover:bg-slate-200">Family Pool</button>
+                    <button onclick="switchTab('routing')" id="btn-routing" class="px-4 py-2 rounded-lg font-medium text-sm transition bg-slate-100 text-slate-600 hover:bg-slate-200">Cash Flow Routing</button>
                 </div>
             </div>
+        </header>
 
-            <!-- Summary Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="firsto-summary-cards"></div>
+        <!-- Main Container -->
+        <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Chart Box -->
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center">
-                    <h3 class="font-semibold text-slate-700 mb-2 text-center">สัดส่วนรายจ่ายตามหมวดหมู่ (%)</h3>
-                    <div class="w-full max-w-xs">
-                        <canvas id="firstoChart"></canvas>
+            <!-- SECTION 1: Firsto's Ledger -->
+            <section id="tab-firsto" class="space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <h2 class="text-2xl font-bold text-slate-900">ค่าใช้จ่ายทั้งหมดของ Firsto</h2>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="editSalary('Firsto')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-medium text-sm transition flex items-center space-x-2">
+                            <span>✏️ ตั้งค่าเงินเดือน</span>
+                        </button>
+                        <button onclick="openModal('Firsto')" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm shadow-sm transition flex items-center space-x-2">
+                            <span>+ เพิ่มรายการ</span>
+                        </button>
                     </div>
                 </div>
-                <!-- Table Box -->
-                <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                    <div class="p-4 border-b border-slate-100 font-semibold text-slate-700 flex justify-between items-center">
-                        <span>รายละเอียดรายการทั้งหมด</span>
+
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="firsto-summary-cards"></div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Chart Box -->
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center">
+                        <h3 class="font-semibold text-slate-700 mb-2 text-center">สัดส่วนรายจ่ายตามหมวดหมู่ (%)</h3>
+                        <div class="w-full max-w-xs">
+                            <canvas id="firstoChart"></canvas>
+                        </div>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
-                                    <th class="p-4 w-12 text-center">ลำดับ</th>
-                                    <th class="p-4">รายการ</th>
-                                    <th class="p-4">หมวดหมู่</th>
-                                    <th class="p-4 text-right">จำนวนเงิน (฿)</th>
-                                    <th class="p-4 text-center">จัดการ</th>
-                                </tr>
-                            </thead>
-                            <tbody id="firsto-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- SECTION 2: Cakeeki's Ledger -->
-        <section id="tab-cakeeki" class="space-y-6 hidden">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h2 class="text-2xl font-bold text-slate-900">ค่าใช้จ่ายทั้งหมดของ Cakeeki</h2>
-                <div class="flex items-center space-x-3">
-                    <button onclick="editSalary('Cakeeki')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-medium text-sm transition flex items-center space-x-2">
-                        <span>✏️ ตั้งค่าเงินเดือน</span>
-                    </button>
-                    <button onclick="openModal('Cakeeki')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm shadow-sm transition flex items-center space-x-2">
-                        <span>+ เพิ่มรายการ</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Summary Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="cakeeki-summary-cards"></div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Chart Box -->
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center">
-                    <h3 class="font-semibold text-slate-700 mb-2 text-center">สัดส่วนรายจ่ายตามหมวดหมู่ (%)</h3>
-                    <div class="w-full max-w-xs">
-                        <canvas id="cakeekiChart"></canvas>
+                    <!-- Table Box -->
+                    <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div class="p-4 border-b border-slate-100 font-semibold text-slate-700 flex justify-between items-center">
+                            <span>รายละเอียดรายการทั้งหมด</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                                        <th class="p-4 w-12 text-center">ลำดับ</th>
+                                        <th class="p-4">รายการ</th>
+                                        <th class="p-4">หมวดหมู่</th>
+                                        <th class="p-4 text-right">จำนวนเงิน (฿)</th>
+                                        <th class="p-4 text-center">จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="firsto-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-                <!-- Table Box -->
-                <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                    <div class="p-4 border-b border-slate-100 font-semibold text-slate-700 flex justify-between items-center">
-                        <span>รายละเอียดรายการทั้งหมด</span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
-                                    <th class="p-4 w-12 text-center">ลำดับ</th>
-                                    <th class="p-4">รายการ</th>
-                                    <th class="p-4">หมวดหมู่</th>
-                                    <th class="p-4 text-right">จำนวนเงิน (฿)</th>
-                                    <th class="p-4 text-center">จัดการ</th>
-                                </tr>
-                            </thead>
-                            <tbody id="cakeeki-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
-                        </table>
+            </section>
+
+            <!-- SECTION 2: Cakeeki's Ledger -->
+            <section id="tab-cakeeki" class="space-y-6 hidden">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <h2 class="text-2xl font-bold text-slate-900">ค่าใช้จ่ายทั้งหมดของ Cakeeki</h2>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="editSalary('Cakeeki')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-medium text-sm transition flex items-center space-x-2">
+                            <span>✏️ ตั้งค่าเงินเดือน</span>
+                        </button>
+                        <button onclick="openModal('Cakeeki')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm shadow-sm transition flex items-center space-x-2">
+                            <span>+ เพิ่มรายการ</span>
+                        </button>
                     </div>
                 </div>
-            </div>
-        </section>
 
-        <!-- SECTION 3: Family Pool -->
-        <section id="tab-family" class="space-y-6 hidden">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-slate-900">Family Pool (กองกลางครอบครัว)</h2>
-                    <div class="text-xl font-bold text-slate-700 bg-slate-50 px-4 py-2 rounded-lg border border-slate-200" id="total-family-pool-header">
-                        <!-- Populated via JS -->
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="cakeeki-summary-cards"></div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Chart Box -->
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center">
+                        <h3 class="font-semibold text-slate-700 mb-2 text-center">สัดส่วนรายจ่ายตามหมวดหมู่ (%)</h3>
+                        <div class="w-full max-w-xs">
+                            <canvas id="cakeekiChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- Table Box -->
+                    <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div class="p-4 border-b border-slate-100 font-semibold text-slate-700 flex justify-between items-center">
+                            <span>รายละเอียดรายการทั้งหมด</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                                        <th class="p-4 w-12 text-center">ลำดับ</th>
+                                        <th class="p-4">รายการ</th>
+                                        <th class="p-4">หมวดหมู่</th>
+                                        <th class="p-4 text-right">จำนวนเงิน (฿)</th>
+                                        <th class="p-4 text-center">จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cakeeki-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="family-pool-container"></div>
-            </div>
-        </section>
+            </section>
 
-        <!-- SECTION 4: Cash Flow Routing -->
-        <section id="tab-routing" class="space-y-6 hidden">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center">
-                <h2 class="text-2xl font-bold text-slate-900">Cash Flow Routing (เส้นทางการไหลของเงิน)</h2>
-            </div>
-            <div class="grid grid-cols-1 gap-6" id="routing-grid">
-                <!-- Populated dynamically via JS -->
-            </div>
-        </section>
+            <!-- SECTION 3: Family Pool -->
+            <section id="tab-family" class="space-y-6 hidden">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-slate-900">Family Pool (กองกลางครอบครัว)</h2>
+                        <div class="text-xl font-bold text-slate-700 bg-slate-50 px-4 py-2 rounded-lg border border-slate-200" id="total-family-pool-header">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="family-pool-container"></div>
+                </div>
+            </section>
 
-    </main>
+            <!-- SECTION 4: Cash Flow Routing -->
+            <section id="tab-routing" class="space-y-6 hidden">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-slate-900">Cash Flow Routing (เส้นทางการไหลของเงิน)</h2>
+                </div>
+                <div class="grid grid-cols-1 gap-6" id="routing-grid">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </section>
+
+        </main>
+    </div>
 
     <!-- Modal for Adding/Editing Data -->
     <div id="itemModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
@@ -188,6 +205,31 @@
     </div>
 
     <script>
+        // Authentication check on load
+        function handleLogin(event) {
+            event.preventDefault();
+            const pwd = document.getElementById('password-input').value;
+            const errorMsg = document.getElementById('error-msg');
+            if (pwd === '22112022') {
+                sessionStorage.setItem('isAuth', 'true');
+                document.getElementById('auth-overlay').classList.add('hidden');
+                document.getElementById('app-content').classList.remove('hidden');
+                initApp();
+            } else {
+                errorMsg.classList.remove('hidden');
+                document.getElementById('password-input').value = '';
+                document.getElementById('password-input').focus();
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('isAuth') === 'true') {
+                document.getElementById('auth-overlay').classList.add('hidden');
+                document.getElementById('app-content').classList.remove('hidden');
+                initApp();
+            }
+        });
+
         const categoryColors = {
             "Deductions": "bg-red-50 text-red-700 border-red-200",
             "Family Pool": "bg-sky-50 text-sky-700 border-sky-200",
@@ -526,6 +568,11 @@
             `;
         }
 
+        function initApp() {
+            renderLedger('Firsto');
+            renderLedger('Cakeeki');
+        }
+
         // --- Drag and Drop Handlers ---
         let draggedIndex = null;
         function onDragStart(event, index) {
@@ -700,10 +747,6 @@
             if (ledgerType === 'Firsto') firstoChartInstance = chartObj;
             else cakeekiChartInstance = chartObj;
         }
-
-        // Initial Load
-        renderLedger('Firsto');
-        renderLedger('Cakeeki');
     </script>
 </body>
 </html>
