@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Finance Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap');
+        body { font-family: 'Prompt', sans-serif; background-color: #f8fafc; }
+        .draggable-row { cursor: grab; }
+        .draggable-row:active { cursor: grabbing; }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- Navbar / Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center">
+            <div class="flex items-center space-x-3 mb-2 sm:mb-0">
+                <span class="text-2xl">💰</span>
+                <h1 class="text-xl font-bold text-slate-800">Family Expense & Planning Hub</h1>
+            </div>
+            <div class="flex space-x-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0">
+                <button onclick="switchTab('firsto')" id="btn-firsto" class="px-4 py-2 rounded-lg font-medium text-sm transition bg-green-600 text-white shadow-sm">Firsto's Ledger</button>
+                <button onclick="switchTab('cakeeki')" id="btn-cakeeki" class="px-4 py-2 rounded-lg font-medium text-sm transition bg-slate-100 text-slate-600 hover:bg-slate-200">Cakeeki's Ledger</button>
+                <button onclick="switchTab('family')" id="btn-family" class="px-4 py-2 rounded-lg font-medium text-sm transition bg-slate-100 text-slate-600 hover:bg-slate-200">Family Pool</button>
+                <button onclick="switchTab('routing')" id="btn-routing" class="px-4 py-2 rounded-lg font-medium text-sm transition bg-slate-100 text-slate-600 hover:bg-slate-200">Cash Flow Routing</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+        <!-- SECTION 1: Firsto's Ledger -->
+        <section id="tab-firsto" class="space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <h2 class="text-2xl font-bold text-slate-900">ค่าใช้จ่ายทั้งหมดของ Firsto</h2>
+                <div class="flex items-center space-x-3">
+                    <button onclick="editSalary('Firsto')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-medium text-sm transition flex items-center space-x-2">
+                        <span>✏️ ตั้งค่าเงินเดือน</span>
+                    </button>
+                    <button onclick="openModal('Firsto')" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm shadow-sm transition flex items-center space-x-2">
+                        <span>+ เพิ่มรายการ</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="firsto-summary-cards"></div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Chart Box -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center">
+                    <h3 class="font-semibold text-slate-700 mb-2 text-center">สัดส่วนรายจ่ายตามหมวดหมู่ (%)</h3>
+                    <div class="w-full max-w-xs">
+                        <canvas id="firstoChart"></canvas>
+                    </div>
+                </div>
+                <!-- Table Box -->
+                <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 font-semibold text-slate-700 flex justify-between items-center">
+                        <span>รายละเอียดรายการทั้งหมด</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                                    <th class="p-4 w-12 text-center">ลำดับ</th>
+                                    <th class="p-4">รายการ</th>
+                                    <th class="p-4">หมวดหมู่</th>
+                                    <th class="p-4 text-right">จำนวนเงิน (฿)</th>
+                                    <th class="p-4 text-center">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="firsto-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: Cakeeki's Ledger -->
+        <section id="tab-cakeeki" class="space-y-6 hidden">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <h2 class="text-2xl font-bold text-slate-900">ค่าใช้จ่ายทั้งหมดของ Cakeeki</h2>
+                <div class="flex items-center space-x-3">
+                    <button onclick="editSalary('Cakeeki')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-medium text-sm transition flex items-center space-x-2">
+                        <span>✏️ ตั้งค่าเงินเดือน</span>
+                    </button>
+                    <button onclick="openModal('Cakeeki')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm shadow-sm transition flex items-center space-x-2">
+                        <span>+ เพิ่มรายการ</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="cakeeki-summary-cards"></div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Chart Box -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center">
+                    <h3 class="font-semibold text-slate-700 mb-2 text-center">สัดส่วนรายจ่ายตามหมวดหมู่ (%)</h3>
+                    <div class="w-full max-w-xs">
+                        <canvas id="cakeekiChart"></canvas>
+                    </div>
+                </div>
+                <!-- Table Box -->
+                <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 font-semibold text-slate-700 flex justify-between items-center">
+                        <span>รายละเอียดรายการทั้งหมด</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                                    <th class="p-4 w-12 text-center">ลำดับ</th>
+                                    <th class="p-4">รายการ</th>
+                                    <th class="p-4">หมวดหมู่</th>
+                                    <th class="p-4 text-right">จำนวนเงิน (฿)</th>
+                                    <th class="p-4 text-center">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cakeeki-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: Family Pool -->
+        <section id="tab-family" class="space-y-6 hidden">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-slate-900">Family Pool (กองกลางครอบครัว)</h2>
+                    <div class="text-xl font-bold text-slate-700 bg-slate-50 px-4 py-2 rounded-lg border border-slate-200" id="total-family-pool-header">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="family-pool-container"></div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: Cash Flow Routing -->
+        <section id="tab-routing" class="space-y-6 hidden">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-slate-900">Cash Flow Routing (เส้นทางการไหลของเงิน)</h2>
+            </div>
+            <div class="grid grid-cols-1 gap-6" id="routing-grid">
+                <!-- Populated dynamically via JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal for Adding/Editing Data -->
+    <div id="itemModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <h3 id="modal-title" class="text-lg font-bold text-slate-900">เพิ่มรายการใหม่</h3>
+            <input type="hidden" id="edit-index" value="-1">
+            <input type="hidden" id="active-ledger" value="Firsto">
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">ชื่อรายการ</label>
+                <input type="text" id="item-name" class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">หมวดหมู่</label>
+                <select id="item-category" class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <option value="Family Pool">Family Pool</option>
+                    <option value="Family Care">Family Care</option>
+                    <option value="Fixed Costs">Fixed Costs</option>
+                    <option value="Variable Costs">Variable Costs</option>
+                    <option value="Investments">Investments</option>
+                    <option value="Deductions">Deductions</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">จำนวนเงิน (บาท)</label>
+                <input type="number" id="item-amount" class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button onclick="closeModal()" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-600 py-3 rounded-xl font-medium text-sm transition">ยกเลิก</button>
+                <button onclick="saveItem()" class="w-1/2 bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-medium text-sm transition">บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const categoryColors = {
+            "Deductions": "bg-red-50 text-red-700 border-red-200",
+            "Family Pool": "bg-sky-50 text-sky-700 border-sky-200",
+            "Family Care": "bg-emerald-50 text-emerald-700 border-emerald-200",
+            "Fixed Costs": "bg-amber-50 text-amber-700 border-amber-200",
+            "Investments": "bg-purple-50 text-purple-700 border-purple-200",
+            "Variable Costs": "bg-orange-50 text-orange-700 border-orange-200"
+        };
+
+        const chartColorsHex = ['#ef4444', '#0ea5e9', '#10b981', '#f59e0b', '#8b5cf6', '#f97316'];
+        const chartLabelsOrder = ["Deductions", "Family Pool", "Family Care", "Fixed Costs", "Investments", "Variable Costs"];
+
+        let firstoSalary = parseFloat(localStorage.getItem('firstoSalary')) || 100100;
+        let cakeekiSalary = parseFloat(localStorage.getItem('cakeekiSalary')) || 51054;
+
+        let firstoData = JSON.parse(localStorage.getItem('firstoData')) || [
+            { name: "Home Expenses", amount: 12434, category: "Family Pool" },
+            { name: "Home Streaming (Netflix)", amount: 407, category: "Family Pool" },
+            { name: "Home Broadband (True) Main", amount: 535, category: "Family Pool" },
+            { name: "Home Broadband (True) Akin", amount: 535, category: "Family Pool" },
+            { name: "Home Wellness (Coway) Main", amount: 690, category: "Family Pool" },
+            { name: "Home Wellness (Coway) Akin", amount: 399, category: "Family Pool" },
+            { name: "Vehicle Maintenance", amount: 2500, category: "Family Pool" },
+            { name: "Leisure & Travel", amount: 2500, category: "Family Pool" },
+            { name: "Kid's Fund", amount: 3000, category: "Family Pool" },
+            { name: "Family Support (Mom)", amount: 4000, category: "Family Care" },
+            { name: "Mobile Service", amount: 481, category: "Fixed Costs" },
+            { name: "Food and Beverage", amount: 12000, category: "Variable Costs" },
+            { name: "Fuel / Gas", amount: 3000, category: "Variable Costs" },
+            { name: "Shopping", amount: 5000, category: "Variable Costs" },
+            { name: "Cooperative Stock", amount: 3000, category: "Investments" },
+            { name: "Provident Fund 8%", amount: 8008, category: "Investments" },
+            { name: "KKP US500 RMF-UH", amount: 25000, category: "Investments" },
+            { name: "Personal Income Tax", amount: 9006, category: "Deductions" },
+            { name: "Social Security", amount: 875, category: "Deductions" }
+        ];
+
+        let cakeekiData = JSON.parse(localStorage.getItem('cakeekiData')) || [
+            { name: "Home Expenses", amount: 13000, category: "Family Pool" },
+            { name: "Vehicle Maintenance", amount: 2500, category: "Family Pool" },
+            { name: "Leisure & Travel", amount: 2500, category: "Family Pool" },
+            { name: "Kid's Fund", amount: 2000, category: "Family Pool" },
+            { name: "Mobile Service", amount: 214, category: "Fixed Costs" },
+            { name: "Social", amount: 1000, category: "Variable Costs" },
+            { name: "Shopping/Cosmetic", amount: 3000, category: "Variable Costs" },
+            { name: "Fuel / Gas", amount: 3000, category: "Variable Costs" },
+            { name: "Food and Beverage", amount: 12000, category: "Variable Costs" },
+            { name: "Provident Fund", amount: 2432, category: "Investments" },
+            { name: "Personal Income Tax", amount: 1600, category: "Deductions" },
+            { name: "Social Security", amount: 875, category: "Deductions" }
+        ];
+
+        let firstoChartInstance = null;
+        let cakeekiChartInstance = null;
+
+        function getCategoryBadge(cat) {
+            const css = categoryColors[cat] || "bg-slate-50 text-slate-700 border-slate-200";
+            return `<span class="px-2.5 py-1 rounded-md text-xs font-semibold border ${css}">${cat}</span>`;
+        }
+
+        function switchTab(tabName) {
+            ['firsto', 'cakeeki', 'family', 'routing'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`btn-${t}`).className = "px-4 py-2 rounded-lg font-medium text-sm transition bg-slate-100 text-slate-600 hover:bg-slate-200";
+            });
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`btn-${tabName}`);
+            activeBtn.className = tabName === 'firsto' ? "px-4 py-2 rounded-lg font-medium text-sm transition bg-green-600 text-white shadow-sm" :
+                                  tabName === 'cakeeki' ? "px-4 py-2 rounded-lg font-medium text-sm transition bg-blue-600 text-white shadow-sm" :
+                                  "px-4 py-2 rounded-lg font-medium text-sm transition bg-slate-800 text-white shadow-sm";
+            if(tabName === 'firsto') renderLedger('Firsto');
+            if(tabName === 'cakeeki') renderLedger('Cakeeki');
+            if(tabName === 'family') renderFamilyPool();
+            if(tabName === 'routing') renderRouting();
+        }
+
+        function renderLedger(ledgerType) {
+            const isFirsto = ledgerType === 'Firsto';
+            const data = isFirsto ? firstoData : cakeekiData;
+            const salary = isFirsto ? firstoSalary : cakeekiSalary;
+            const tbodyId = isFirsto ? 'firsto-tbody' : 'cakeeki-tbody';
+            const summaryId = isFirsto ? 'firsto-summary-cards' : 'cakeeki-summary-cards';
+
+            const tbody = document.getElementById(tbodyId);
+            tbody.innerHTML = data.map((item, idx) => `
+                <tr draggable="true" ondragstart="onDragStart(event, ${idx})" ondragover="onDragOver(event)" ondrop="onDrop(event, '${ledgerType}', ${idx})" class="draggable-row hover:bg-slate-50/50 transition">
+                    <td class="p-4 text-center">
+                        <span class="cursor-grab text-slate-400 hover:text-slate-700 text-lg select-none px-2 py-1 rounded hover:bg-slate-100">⠿</span>
+                    </td>
+                    <td class="p-4 font-medium text-slate-700">${item.name}</td>
+                    <td class="p-4">${getCategoryBadge(item.category)}</td>
+                    <td class="p-4 text-right font-semibold text-slate-900">${item.amount.toLocaleString()}</td>
+                    <td class="p-4 text-center space-x-1">
+                        <button onclick="editItem('${ledgerType}', ${idx})" class="p-1.5 hover:bg-slate-100 rounded-lg transition">✏️</button>
+                        <button onclick="deleteItem('${ledgerType}', ${idx})" class="p-1.5 hover:bg-slate-100 rounded-lg transition">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+
+            let totalExp = data.reduce((sum, i) => sum + i.amount, 0);
+            let netBalance = salary - totalExp;
+
+            document.getElementById(summaryId).innerHTML = `
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Salary</div>
+                    <div class="text-2xl font-bold text-slate-800">฿${salary.toLocaleString()}</div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Expenses</div>
+                    <div class="text-2xl font-bold text-orange-600">฿${totalExp.toLocaleString()}</div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Net Balance</div>
+                    <div class="text-2xl font-bold text-green-600">฿${netBalance.toLocaleString()}</div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Items</div>
+                    <div class="text-2xl font-bold text-blue-600">${data.length} รายการ</div>
+                </div>
+            `;
+
+            updateChart(ledgerType, data);
+        }
+
+        function renderFamilyPool() {
+            const firstoPoolItems = firstoData.filter(i => i.category === "Family Pool");
+            const cakeekiPoolItems = cakeekiData.filter(i => i.category === "Family Pool");
+
+            const firstoPoolTotal = firstoPoolItems.reduce((sum, i) => sum + i.amount, 0);
+            const cakeekiPoolTotal = cakeekiPoolItems.reduce((sum, i) => sum + i.amount, 0);
+            const familyTotal = firstoPoolTotal + cakeekiPoolTotal;
+
+            document.getElementById('total-family-pool-header').innerText = `รวม ฿${familyTotal.toLocaleString()}`;
+
+            const homeUtilsItems = firstoPoolItems.filter(i => {
+                const n = i.name.toLowerCase();
+                return n.includes('expenses') || n.includes('streaming') || n.includes('broadband') || n.includes('wellness');
+            });
+            const homeUtilsTotal = homeUtilsItems.reduce((sum, i) => sum + i.amount, 0);
+
+            const container = document.getElementById('family-pool-container');
+            container.innerHTML = `
+                <div class="p-6 rounded-2xl bg-sky-50 border border-sky-100 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold text-sky-900 text-xl">ส่วนของ Firsto</h3>
+                            <span class="bg-sky-200 text-sky-800 text-xs px-3 py-1.5 rounded-full font-semibold">Family Pool</span>
+                        </div>
+                        <div class="text-xs font-semibold text-sky-800 uppercase tracking-wider mb-2">Home & Utilities (รวมกลุ่มบ้าน)</div>
+                        <ul class="text-sm space-y-2 text-slate-700 mb-4 bg-white/60 p-3 rounded-xl border border-sky-100">
+                            ${homeUtilsItems.map(i => `<li class="flex justify-between"><span>• ${i.name}</span><span class="font-semibold">฿${i.amount.toLocaleString()}</span></li>`).join('')}
+                            <li class="flex justify-between pt-2 border-t border-sky-200 font-bold text-sky-900">
+                                <span>รวมค่าใช้จ่ายกลุ่มบ้าน</span>
+                                <span>฿${homeUtilsTotal.toLocaleString()}</span>
+                            </li>
+                        </ul>
+
+                        <div class="text-xs font-semibold text-sky-800 uppercase tracking-wider mb-2 mt-4">รายการอื่นๆ ในกองกลาง</div>
+                        <ul class="text-sm space-y-2 text-slate-700 mb-4 bg-white/60 p-3 rounded-xl border border-sky-100">
+                            ${firstoPoolItems.filter(i => !homeUtilsItems.includes(i)).map(i => `<li class="flex justify-between"><span>• ${i.name}</span><span class="font-semibold">฿${i.amount.toLocaleString()}</span></li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="text-3xl font-bold text-sky-700 pt-4 border-t-2 border-sky-200/60 text-right">รวม ฿${firstoPoolTotal.toLocaleString()}</div>
+                </div>
+
+                <div class="p-6 rounded-2xl bg-blue-50 border border-blue-100 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold text-blue-900 text-xl">ส่วนของ Cakeeki</h3>
+                            <span class="bg-blue-200 text-blue-800 text-xs px-3 py-1.5 rounded-full font-semibold">Family Pool</span>
+                        </div>
+                        <ul class="text-sm space-y-3 text-slate-700 mb-6 divide-y divide-blue-100/50 bg-white/60 p-4 rounded-xl border border-blue-100">
+                            ${cakeekiPoolItems.map(i => `<li class="pt-3 first:pt-0 flex justify-between"><span>${i.name}</span><span class="font-semibold">฿${i.amount.toLocaleString()}</span></li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="text-3xl font-bold text-blue-700 pt-4 border-t-2 border-blue-200/60 text-right">รวม ฿${cakeekiPoolTotal.toLocaleString()}</div>
+                </div>
+            `;
+        }
+
+        function renderRouting() {
+            const findAmount = (data, keyword) => {
+                const item = data.find(i => i.name.toLowerCase().includes(keyword.toLowerCase()));
+                return item ? item.amount : 0;
+            };
+
+            const targetFirstoPoolBudget = firstoData.filter(i => i.category === "Family Pool").reduce((sum, i) => sum + i.amount, 0);
+            
+            const fKids = findAmount(firstoData, 'kid');
+            const cKids = findAmount(cakeekiData, 'kid');
+            const totalKids = fKids + cKids;
+
+            const fVehicle = findAmount(firstoData, 'vehicle');
+            const cVehicle = findAmount(cakeekiData, 'vehicle');
+            const totalVehicle = fVehicle + cVehicle;
+
+            const fTravel = findAmount(firstoData, 'travel');
+            const cTravel = findAmount(cakeekiData, 'travel');
+            const totalTravel = fTravel + cTravel;
+
+            const netflix = findAmount(firstoData, 'netflix');
+            const trueMain = findAmount(firstoData, 'broadband (true) main') || findAmount(firstoData, 'true'); 
+            const trueAkin = findAmount(firstoData, 'broadband (true) akin');
+            const cowayMain = findAmount(firstoData, 'wellness (coway) main') || findAmount(firstoData, 'coway');
+            const cowayAkin = findAmount(firstoData, 'wellness (coway) akin');
+
+            const paidElsewhereTotal = netflix + trueMain + trueAkin + cowayMain + cowayAkin + totalVehicle + totalTravel + totalKids;
+            const homeExpensesRemainder = targetFirstoPoolBudget - paidElsewhereTotal;
+            const makeByKbankTotal = homeExpensesRemainder + totalVehicle + totalTravel;
+
+            const rmfAmount = findAmount(firstoData, 'rmf');
+            const dimeTotal = rmfAmount + totalKids;
+
+            const firstoCare = firstoData.filter(i => i.category === "Family Care");
+            const firstoCareTotal = firstoCare.reduce((sum, i) => sum + i.amount, 0);
+
+            const cakeekiHouseInstallment = 20000;
+
+            const grid = document.getElementById('routing-grid');
+            grid.innerHTML = `
+                <!-- Routing 1: MAKE by KBank -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-xs font-semibold bg-purple-50 text-purple-600 px-2.5 py-1 rounded-md">Monthly on the 1st</span>
+                            <span class="text-3xl font-bold text-purple-700">฿${makeByKbankTotal.toLocaleString()}</span>
+                        </div>
+                        <div class="text-lg font-bold text-slate-800 flex items-center space-x-2 my-2">
+                            <span class="text-blue-600">K PLUS</span>
+                            <span>➔</span>
+                            <span class="text-green-600">MAKE by KBank (Firsto)</span>
+                        </div>
+                        
+                        <div class="bg-slate-50 p-5 rounded-xl text-sm text-slate-600 space-y-3 mt-4">
+                            <div class="flex justify-between font-bold text-slate-800 border-b border-slate-200 pb-2">
+                                <span>เป้าหมาย Family Pool (Firsto)</span>
+                                <span>฿${targetFirstoPoolBudget.toLocaleString()}</span>
+                            </div>
+                            
+                            <div class="space-y-1">
+                                <p class="font-semibold text-slate-700">หัก: รายการที่จ่ายผ่านช่องทางอื่นแล้ว</p>
+                                <div class="flex justify-between pl-3 text-slate-500"><span>- Streaming (Netflix)</span><span>฿${netflix.toLocaleString()}</span></div>
+                                <div class="flex justify-between pl-3 text-slate-500"><span>- Broadband (True)</span><span>฿${(trueMain + trueAkin).toLocaleString()}</span></div>
+                                <div class="flex justify-between pl-3 text-slate-500"><span>- Wellness (Coway)</span><span>฿${(cowayMain + cowayAkin).toLocaleString()}</span></div>
+                                <div class="flex justify-between pl-3 text-slate-500"><span>- Vehicle Maintenance</span><span>฿${totalVehicle.toLocaleString()}</span></div>
+                                <div class="flex justify-between pl-3 text-slate-500"><span>- Leisure & Travel</span><span>฿${totalTravel.toLocaleString()}</span></div>
+                                <div class="flex justify-between pl-3 text-slate-500"><span>- Kid's Fund</span><span>฿${totalKids.toLocaleString()}</span></div>
+                            </div>
+                            
+                            <div class="flex justify-between font-bold text-sky-700 border-t border-slate-200 pt-2">
+                                <span>คงเหลือโอนเข้า Home Expenses</span>
+                                <span>฿${homeExpensesRemainder.toLocaleString()}</span>
+                            </div>
+                            
+                            <div class="space-y-1 pt-2">
+                                <p class="font-semibold text-slate-700">บวกกลับ: รายการที่ต้องโอนเข้า MAKE</p>
+                                <div class="flex justify-between pl-3 text-slate-500"><span>+ Vehicle Maintenance (รวม Firsto ฿${fVehicle.toLocaleString()}, Cakeeki ฿${cVehicle.toLocaleString()})</span><span>฿${totalVehicle.toLocaleString()}</span></div>
+                                <div class="flex justify-between pl-3 text-slate-500"><span>+ Leisure & Travel (รวม Firsto ฿${fTravel.toLocaleString()}, Cakeeki ฿${cTravel.toLocaleString()})</span><span>฿${totalTravel.toLocaleString()}</span></div>
+                            </div>
+                            
+                            <div class="flex justify-between font-bold text-green-700 bg-green-50 p-3 rounded-lg border border-green-100 mt-3 text-base">
+                                <span>ยอดโอนสุทธิ (Net Transfer)</span>
+                                <span>฿${makeByKbankTotal.toLocaleString()}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Routing 2: Cakeeki House Installment -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-xs font-semibold bg-blue-50 text-blue-600 px-2.5 py-1 rounded-md">Monthly on the 1st</span>
+                            <span class="text-3xl font-bold text-blue-700">฿${cakeekiHouseInstallment.toLocaleString()}</span>
+                        </div>
+                        <div class="text-lg font-bold text-slate-800 flex items-center space-x-2 my-2">
+                            <span class="text-blue-600">Mobile Banking</span>
+                            <span>➔</span>
+                            <span class="text-green-600">House Installment (Cakeeki)</span>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-xl text-sm text-slate-600 space-y-3 mt-4">
+                            <div class="flex justify-between font-medium text-slate-700">
+                                <span>ค่าผ่อนบ้าน (Cakeeki เป็นผู้ชำระจากยอดกองกลาง 20,000 ของตนเอง)</span>
+                                <span class="font-bold">฿${cakeekiHouseInstallment.toLocaleString()}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Routing 3: Dime! Save -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-xs font-semibold bg-purple-50 text-purple-600 px-2.5 py-1 rounded-md">Monthly on the 1st</span>
+                            <span class="text-3xl font-bold text-purple-700">฿${dimeTotal.toLocaleString()}</span>
+                        </div>
+                        <div class="text-lg font-bold text-slate-800 flex items-center space-x-2 my-2">
+                            <span class="text-blue-600">K PLUS</span>
+                            <span>➔</span>
+                            <span class="text-green-600">Dime! Save</span>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-xl text-sm text-slate-600 space-y-3 mt-4">
+                            <div class="space-y-3">
+                                <div class="flex justify-between font-medium text-slate-700 border-b border-slate-200 pb-3">
+                                    <span>KKP US500 RMF-UH (Firsto)</span>
+                                    <span>฿${rmfAmount.toLocaleString()}</span>
+                                </div>
+                                <div class="flex justify-between font-medium text-slate-700">
+                                    <span>Kid's Fund (รวม Firsto ฿${fKids.toLocaleString()}, Cakeeki ฿${cKids.toLocaleString()})</span>
+                                    <span>฿${totalKids.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Routing 4: Family Support -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-xs font-semibold bg-purple-50 text-purple-600 px-2.5 py-1 rounded-md">Monthly on the 1st</span>
+                            <span class="text-3xl font-bold text-purple-700">฿${firstoCareTotal.toLocaleString()}</span>
+                        </div>
+                        <div class="text-lg font-bold text-slate-800 flex items-center space-x-2 my-2">
+                            <span class="text-blue-600">K PLUS</span>
+                            <span>➔</span>
+                            <span class="text-green-600">P'Boom</span>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-xl text-sm text-slate-600 space-y-3 mt-4">
+                            <ul class="space-y-3">
+                                ${firstoCare.map(i => `<li class="flex justify-between font-medium text-slate-700 border-b border-slate-200 pb-3 last:border-0 last:pb-0"><span>${i.name}</span><span>฿${i.amount.toLocaleString()}</span></li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Drag and Drop Handlers ---
+        let draggedIndex = null;
+        function onDragStart(event, index) {
+            draggedIndex = index;
+            event.dataTransfer.effectAllowed = 'move';
+        }
+        function onDragOver(event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+        }
+        function onDrop(event, ledgerType, targetIndex) {
+            event.preventDefault();
+            if (draggedIndex === null || draggedIndex === targetIndex) return;
+
+            let data = ledgerType === 'Firsto' ? firstoData : cakeekiData;
+            const movedItem = data.splice(draggedIndex, 1)[0];
+            data.splice(targetIndex, 0, movedItem);
+
+            if (ledgerType === 'Firsto') {
+                localStorage.setItem('firstoData', JSON.stringify(firstoData));
+            } else {
+                localStorage.setItem('cakeekiData', JSON.stringify(cakeekiData));
+            }
+            renderLedger(ledgerType);
+            draggedIndex = null;
+        }
+
+        function editSalary(ledgerType) {
+            const current = ledgerType === 'Firsto' ? firstoSalary : cakeekiSalary;
+            const input = prompt(`ระบุจำนวนเงินเดือนใหม่ของ ${ledgerType}:`, current);
+            if (input !== null) {
+                const val = parseFloat(input);
+                if (!isNaN(val)) {
+                    if (ledgerType === 'Firsto') {
+                        firstoSalary = val;
+                        localStorage.setItem('firstoSalary', firstoSalary);
+                    } else {
+                        cakeekiSalary = val;
+                        localStorage.setItem('cakeekiSalary', cakeekiSalary);
+                    }
+                    renderLedger(ledgerType);
+                }
+            }
+        }
+
+        function openModal(ledger, index = -1) {
+            document.getElementById('active-ledger').value = ledger;
+            document.getElementById('edit-index').value = index;
+            if (index > -1) {
+                const item = ledger === 'Firsto' ? firstoData[index] : cakeekiData[index];
+                document.getElementById('modal-title').innerText = `แก้ไขรายการ`;
+                document.getElementById('item-name').value = item.name;
+                document.getElementById('item-category').value = item.category;
+                document.getElementById('item-amount').value = item.amount;
+            } else {
+                document.getElementById('modal-title').innerText = `เพิ่มรายการใหม่`;
+                document.getElementById('item-name').value = '';
+                document.getElementById('item-category').value = 'Family Pool';
+                document.getElementById('item-amount').value = '';
+            }
+            document.getElementById('itemModal').classList.remove('hidden');
+            document.getElementById('itemModal').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('itemModal').classList.remove('flex');
+            document.getElementById('itemModal').classList.add('hidden');
+        }
+
+        function saveItem() {
+            const ledger = document.getElementById('active-ledger').value;
+            const index = parseInt(document.getElementById('edit-index').value);
+            const name = document.getElementById('item-name').value;
+            const category = document.getElementById('item-category').value;
+            const amount = parseFloat(document.getElementById('item-amount').value);
+
+            if (!name || isNaN(amount)) {
+                alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+                return;
+            }
+
+            const newItem = { name, amount, category };
+            if (ledger === 'Firsto') {
+                if (index > -1) firstoData[index] = newItem;
+                else firstoData.push(newItem);
+                localStorage.setItem('firstoData', JSON.stringify(firstoData));
+            } else {
+                if (index > -1) cakeekiData[index] = newItem;
+                else cakeekiData.push(newItem);
+                localStorage.setItem('cakeekiData', JSON.stringify(cakeekiData));
+            }
+
+            closeModal();
+            renderLedger(ledger);
+        }
+
+        function editItem(ledger, index) {
+            openModal(ledger, index);
+        }
+
+        function deleteItem(ledger, index) {
+            if (confirm('คุณต้องการลบรายการนี้ใช่หรือไม่?')) {
+                if (ledger === 'Firsto') {
+                    firstoData.splice(index, 1);
+                    localStorage.setItem('firstoData', JSON.stringify(firstoData));
+                } else {
+                    cakeekiData.splice(index, 1);
+                    localStorage.setItem('cakeekiData', JSON.stringify(cakeekiData));
+                }
+                renderLedger(ledger);
+            }
+        }
+
+        function updateChart(ledgerType, data) {
+            const categoryTotals = {};
+            chartLabelsOrder.forEach(cat => categoryTotals[cat] = 0);
+            
+            let totalExp = 0;
+            data.forEach(i => {
+                if (categoryTotals[i.category] !== undefined) {
+                    categoryTotals[i.category] += i.amount;
+                    totalExp += i.amount;
+                }
+            });
+
+            const activeLabels = [];
+            const activeData = [];
+            const activeColors = [];
+
+            chartLabelsOrder.forEach((cat, idx) => {
+                if (categoryTotals[cat] > 0) {
+                    let percentage = totalExp > 0 ? ((categoryTotals[cat] / totalExp) * 100).toFixed(1) : 0;
+                    activeLabels.push(`${cat} (${percentage}%)`);
+                    activeData.push(categoryTotals[cat]);
+                    activeColors.push(chartColorsHex[idx]);
+                }
+            });
+
+            const canvasId = ledgerType === 'Firsto' ? 'firstoChart' : 'cakeekiChart';
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            if (ledgerType === 'Firsto' && firstoChartInstance) firstoChartInstance.destroy();
+            if (ledgerType === 'Cakeeki' && cakeekiChartInstance) cakeekiChartInstance.destroy();
+
+            const chartObj = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: activeLabels,
+                    datasets: [{
+                        data: activeData,
+                        backgroundColor: activeColors,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    cutout: '65%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { family: 'Prompt', size: 11 } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let value = context.raw;
+                                    let percentage = totalExp > 0 ? ((value / totalExp) * 100).toFixed(1) : 0;
+                                    return ` ฿${value.toLocaleString()} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            if (ledgerType === 'Firsto') firstoChartInstance = chartObj;
+            else cakeekiChartInstance = chartObj;
+        }
+
+        // Initial Load
+        renderLedger('Firsto');
+        renderLedger('Cakeeki');
+    </script>
+</body>
+</html>
